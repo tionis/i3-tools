@@ -17,7 +17,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"go.i3wm.org/i3/v4"
@@ -48,8 +47,8 @@ func main() {
 				Usage: "access to the i3 api",
 				Subcommands: []*cli.Command{
 					{
-						Name: "GetWorkspaces",
-						Usage: "GetWorkspaces returns i3’s current workspaces.\n" +
+						Name: "get-workspaces",
+						Usage: "returns i3’s current workspaces.\n" +
 							"GetWorkspaces is supported in i3 ≥ v4.0 (2011-07-31).",
 						Action: func(c *cli.Context) error {
 							workspaces, err := i3.GetWorkspaces()
@@ -65,8 +64,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetTree",
-						Usage: "GetTree returns i3’s layout tree.\n" +
+						Name: "get-tree",
+						Usage: "returns i3’s layout tree.\n" +
 							"GetTree is supported in i3 ≥ v4.0 (2011-07-31).",
 						Action: func(c *cli.Context) error {
 							tree, err := i3.GetTree()
@@ -82,8 +81,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetVersion",
-						Usage: "GetVersion returns i3’s version.\n" +
+						Name: "get-version",
+						Usage: "returns i3’s version.\n" +
 							"GetVersion is supported in i3 ≥ v4.3 (2012-09-19).",
 						Action: func(c *cli.Context) error {
 							version, err := i3.GetVersion()
@@ -99,8 +98,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetOutputs",
-						Usage: "GetOutputs returns i3’s current outputs.\n" +
+						Name: "get-outputs",
+						Usage: "returns i3’s current outputs.\n" +
 							"GetOutputs is supported in i3 ≥ v4.0 (2011-07-31).",
 						Action: func(c *cli.Context) error {
 							outputs, err := i3.GetOutputs()
@@ -116,8 +115,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetBarIDs",
-						Usage: "GetBarIDs returns an array of configured bar IDs.\n" +
+						Name: "get-bar-ids",
+						Usage: "returns an array of configured bar IDs.\n" +
 							"GetBarIDs is supported in i3 ≥ v4.1 (2011-11-11).",
 						Action: func(c *cli.Context) error {
 							ids, err := i3.GetBarIDs()
@@ -133,8 +132,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetBarConfig",
-						Usage: "GetBarConfig returns the configuration for the " +
+						Name: "get-bar-config",
+						Usage: "returns the configuration for the " +
 							"bar with the specified barID.\n" +
 							"Obtain the barID from GetBarIDs.\n" +
 							"GetBarConfig is supported in i3 ≥ v4.1 (2011-11-11).",
@@ -159,8 +158,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetBindingModes",
-						Usage: "GetBindingModes returns the names of all currently configured binding modes.\n" +
+						Name: "get-binding-modes",
+						Usage: "returns the names of all currently configured binding modes.\n" +
 							"GetBindingModes is supported in i3 ≥ v4.13 (2016-11-08).",
 						Action: func(c *cli.Context) error {
 							modes, err := i3.GetBindingModes()
@@ -176,8 +175,8 @@ func main() {
 						},
 					},
 					{
-						Name: "SendTick",
-						Usage: "SendTick sends a tick event with the provided payload.\n" +
+						Name: "send-tick",
+						Usage: "sends a tick event with the provided payload.\n" +
 							"SendTick is supported in i3 ≥ v4.15 (2018-03-10).",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
@@ -200,8 +199,8 @@ func main() {
 						},
 					},
 					{
-						Name: "Sync",
-						Usage: "Sync sends a tick event with the provided payload.\n" +
+						Name: "sync",
+						Usage: "sends a tick event with the provided payload.\n" +
 							"Sync is supported in i3 ≥ v4.16 (2018-11-04).",
 						Flags: []cli.Flag{
 							&cli.IntFlag{
@@ -228,8 +227,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetMarks",
-						Usage: "GetMarks returns the names of all currently set marks.\n" +
+						Name: "get-marks",
+						Usage: "returns the names of all currently set marks.\n" +
 							"GetMarks is supported in i3 ≥ v4.1 (2011-11-11).",
 						Action: func(c *cli.Context) error {
 							marks, err := i3.GetMarks()
@@ -245,8 +244,8 @@ func main() {
 						},
 					},
 					{
-						Name: "GetBindingState",
-						Usage: "GetBindingState returns the currently active binding mode.\n" +
+						Name: "get-binding-state",
+						Usage: "returns the currently active binding mode.\n" +
 							"GetBindingState is supported in i3 ≥ 4.19 (2020-11-15)",
 						Action: func(c *cli.Context) error {
 							state, err := i3.GetBindingState()
@@ -262,8 +261,8 @@ func main() {
 						},
 					},
 					{
-						Name: "Restart",
-						Usage: "Restart sends the restart command to i3. " +
+						Name: "restart",
+						Usage: "sends the restart command to i3. " +
 							"Sending restart via RunCommand will result in " +
 							"a deadlock: since i3 restarts before it sends the " +
 							"reply to the restart command, RunCommand will retry " +
@@ -274,20 +273,14 @@ func main() {
 						},
 					},
 					{
-						Name: "RunCommand",
-						Usage: "RunCommand makes i3 run the specified command.\n" +
+						Name: "run-command",
+						Usage: "makes i3 run the specified command.\n" +
 							"Error is non-nil if any CommandResult.Success is not true. " +
 							"See IsUnsuccessful if you send commands which are expected to " +
 							"fail.\nRunCommand is supported in i3 ≥ v4.0 (2011-07-31).",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "command",
-								Usage:    "command to send to i3",
-								Required: true,
-							},
-						},
+						UsageText: "${command_to_run}",
 						Action: func(c *cli.Context) error {
-							result, err := i3.RunCommand(c.String("command"))
+							result, err := i3.RunCommand(c.Args().First())
 							if err != nil {
 								return err
 							}
@@ -300,8 +293,8 @@ func main() {
 						},
 					},
 					{
-						Name: "Subscribe",
-						Usage: "Subscribe returns an EventReceiver for receiving " +
+						Name: "subscribe",
+						Usage: "returns an EventReceiver for receiving " +
 							"events of the specified types from i3.\n" +
 							"Unless the ordering of events matters to your use-case, " +
 							"you are encouraged to call Subscribe once per event type, " +
@@ -383,6 +376,6 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		log.Fatalf("failed to run app: %v", errors.Unwrap(err))
+		log.Fatalf("error occurred: %+v", err)
 	}
 }
