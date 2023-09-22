@@ -6,6 +6,7 @@ import (
 	"barista.run/colors"
 	"barista.run/outputs"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/multiplay/go-cticker"
 	"golang.org/x/crypto/ssh"
 	"log"
@@ -21,6 +22,12 @@ type Module struct {
 	outputFunc     value.Value // of func(bool, bool) bar.Output
 	ticker         *cticker.Ticker
 	tickerAccuracy int
+	cert           *ssh.Certificate
+	err            error
+}
+
+func (m *Module) parseCert() {
+	m.cert, m.err = parseCertFile(m.certPath)
 }
 
 // ForPath constructs a yubikey module with the given path to the gpg keyring.
@@ -32,21 +39,24 @@ func ForPath(certPath string) *Module {
 	}
 
 	m.Output(func() bar.Output {
-		cert, err := parseCertFile(m.certPath)
-		if err != nil {
-			return outputs.Error(err)
+		if m.cert == nil {
+			m.parseCert()
 		}
+		if m.err != nil {
+			return outputs.Error(m.err)
+		}
+
 		now := uint64(time.Now().Unix())
 		var timePassed, timeRemaining uint64
-		if now < cert.ValidAfter {
+		if now < m.cert.ValidAfter {
 			timePassed = 0
 		} else {
-			timePassed = now - cert.ValidAfter
+			timePassed = now - m.cert.ValidAfter
 		}
-		if now >= cert.ValidBefore {
+		if now >= m.cert.ValidBefore {
 			timeRemaining = 0
 		} else {
-			timeRemaining = cert.ValidBefore - now
+			timeRemaining = m.cert.ValidBefore - now
 		}
 
 		if timeRemaining <= 60 || timePassed <= 60 {
@@ -105,30 +115,39 @@ func (m *Module) Output(outputFunc func() bar.Output) *Module {
 
 // Stream starts the module.
 func (m *Module) Stream(sink bar.Sink) {
-	//watcher, err := fsnotify.NewWatcher()
-	//if err != nil {
-	//	log.Println(fmt.Errorf("failed to create watcher: %w", err))
-	//	return
-	//}
-	//err = watcher.Add(m.certPath)
-	//if err != nil {
-	//	log.Println("cert path: ", m.certPath)
-	//	log.Println(fmt.Errorf("failed to add file to watcher: %w", err))
-	//	return
-	//}
-	//defer func(watcher *fsnotify.Watcher) {
-	//	err := watcher.Close()
-	//	if err != nil {
-	//		log.Printf("failed to close watcher: %v", err)
-	//	}
-	//}(watcher)
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Println(fmt.Errorf("failed to create watcher: %w", err))
+		return
+	}
+	err = watcher.Add(m.certPath)
+	if err != nil {
+		log.Println("cert path: ", m.certPath)
+		log.Println(fmt.Errorf("failed to add file to watcher: %w", err))
+		return
+	}
+	defer func(watcher *fsnotify.Watcher) {
+		err := watcher.Close()
+		if err != nil {
+			log.Printf("failed to close watcher: %v", err)
+		}
+	}(watcher)
 	outputFunc := m.outputFunc.Get().(func() bar.Output)
 	quit := make(chan struct{})
 	sink.Output(outputFunc())
+
 	for {
 		select {
 		case <-m.ticker.C:
 			sink.Output(outputFunc())
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Op == fsnotify.Write || event.Op == fsnotify.Create {
+				m.parseCert()
+				sink.Output(outputFunc())
+			}
 		case <-quit:
 			m.ticker.Stop()
 			return
@@ -142,7 +161,7 @@ func renderTime(seconds uint64) string {
 	} else if seconds < 60 {
 		return fmt.Sprintf("%ds", seconds)
 	} else if seconds < 60*60 {
-		return fmt.Sprintf("%.1fm", float64(seconds)/60)
+		return fmt.Sprintf("%dm", seconds/60)
 	} else if seconds < 24*60*60 {
 		return fmt.Sprintf("%.1fh", float64(seconds)/60/60)
 	} else {
