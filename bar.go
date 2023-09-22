@@ -188,5 +188,8 @@ func i3status(c barConfig) error {
 	// time
 	barista.Add(clock.Local().OutputFormat("2006-01-02 15:04:05"))
 
+	// if crash on locking and using `status_command exec /path/to/i3-tools bar render`
+	// in i3 config does not help, try uncommenting this:
+	// barista.SuppressSignals(true)
 	return barista.Run()
 }

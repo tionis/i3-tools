@@ -46,6 +46,15 @@ barista.run/sink
 barista.run/testing/httpcache
 barista.run/timing
 barista.run/timing/internal/timerfd
+# github.com/BurntSushi/xgb v0.0.0-20210121224620-deaf085860bc
+## explicit
+github.com/BurntSushi/xgb
+github.com/BurntSushi/xgb/xinerama
+github.com/BurntSushi/xgb/xproto
+# github.com/BurntSushi/xgbutil v0.0.0-20190907113008-ad855c713046
+## explicit
+github.com/BurntSushi/xgbutil
+github.com/BurntSushi/xgbutil/xprop
 # github.com/alessio/shellescape v1.4.1
 ## explicit; go 1.14
 github.com/alessio/shellescape
@@ -123,6 +132,9 @@ github.com/xrash/smetrics
 ## explicit; go 1.18
 github.com/zalando/go-keyring
 github.com/zalando/go-keyring/secret_service
+# go.i3wm.org/i3/v4 v4.21.0
+## explicit; go 1.19
+go.i3wm.org/i3/v4
 # golang.org/x/crypto v0.13.0
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish

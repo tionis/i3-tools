@@ -5,22 +5,25 @@ go 1.21.1
 require (
 	barista.run v0.0.0-20230920005158-2f2fc0aa2b7a
 	github.com/dustin/go-humanize v1.0.1
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/maximbaz/yubikey-touch-detector v0.0.0-20230921072209-a241bcf70545
 	github.com/multiplay/go-cticker v0.0.0-20190411183326-bd2f021b1c08
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zalando/go-keyring v0.2.3
+	go.i3wm.org/i3/v4 v4.21.0
 	golang.org/x/crypto v0.13.0
 )
 
 require (
+	github.com/BurntSushi/xgb v0.0.0-20210121224620-deaf085860bc // indirect
+	github.com/BurntSushi/xgbutil v0.0.0-20190907113008-ad855c713046 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/esiqveland/notify v0.11.1 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
