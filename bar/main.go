@@ -19,6 +19,7 @@ import (
 	"github.com/martinlindhe/unit"
 	"log"
 	"os/exec"
+	"runtime"
 	"strings"
 	"tasadar.net/tionis/i3-tools/bar/certinfo"
 	"tasadar.net/tionis/i3-tools/bar/yubikey"
@@ -65,9 +66,10 @@ func Status(c Config) error {
 	barista.Add(certinfo.New(certSymbol + "[%s]"))
 
 	// Display system load
+	loadWarnLimit := float64(runtime.NumCPU()) * 0.8
 	barista.Add(sysinfo.New().Output(func(i sysinfo.Info) bar.Output {
 		out := outputs.Textf("%.2f/%.2f/%.2f", i.Loads[0], i.Loads[1], i.Loads[2])
-		if i.Loads[0] > 5.0 {
+		if i.Loads[0] > loadWarnLimit {
 			out.Color(colors.Scheme("bad"))
 		}
 		return out
@@ -79,7 +81,7 @@ func Status(c Config) error {
 		switch {
 		case i.AvailFrac() < 0.05:
 			out.Color(colors.Scheme("bad"))
-		case i.Available.Gigabytes() < 3:
+		case i.Available < 3*unit.Gigabyte:
 			out.Color(colors.Scheme("bad"))
 		case i.AvailFrac() < 0.1:
 			out.Color(colors.Scheme("degraded"))
@@ -147,9 +149,9 @@ func Status(c Config) error {
 				}
 			})
 		case w.Connecting():
-			return outputs.Text("W: connecting...").Color(colors.Scheme("degraded"))
+			return outputs.Text(wifiSymbol + "[connecting...]").Color(colors.Scheme("degraded"))
 		case w.Enabled():
-			return outputs.Text("W: down").Color(colors.Scheme("bad"))
+			return outputs.Text(wifiSymbol + "[down]").Color(colors.Scheme("bad"))
 		default:
 			return nil
 		}
@@ -193,7 +195,9 @@ func Status(c Config) error {
 			b.RemainingPct(),
 			b.RemainingTime())
 		if b.Discharging() {
-			if b.RemainingPct() < 20 || (b.RemainingTime() != 0 && b.RemainingTime() < 30*time.Minute) {
+			if b.RemainingPct() < 10 || b.RemainingTime() < 10*time.Minute {
+				out.Color(colors.Scheme("bad")).Urgent(true)
+			} else if b.RemainingPct() < 20 || (b.RemainingTime() != 0 && b.RemainingTime() < 30*time.Minute) {
 				out.Color(colors.Scheme("bad"))
 			}
 		}
