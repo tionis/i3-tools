@@ -64,23 +64,6 @@ func Status(c Config) error {
 	// Display information about ssh certificate
 	barista.Add(certinfo.New(certSymbol + "[%s]"))
 
-	// Display yubikey touch prompt
-	barista.Add(yubikey.New().Output(func(gpg, u2f bool) bar.Output {
-		var reason []string
-		if gpg {
-			reason = append(reason, "GPG")
-		}
-		if u2f {
-			reason = append(reason, "U2F")
-		}
-		if len(reason) == 0 {
-			return nil
-		}
-		out := outputs.Textf("[YK: %s]", strings.Join(reason, ","))
-		out.Urgent(true)
-		return out
-	}))
-
 	// Display system load
 	barista.Add(sysinfo.New().Output(func(i sysinfo.Info) bar.Output {
 		out := outputs.Textf("%.2f/%.2f/%.2f", i.Loads[0], i.Loads[1], i.Loads[2])
@@ -115,6 +98,23 @@ func Status(c Config) error {
 			return outputs.Textf("%s[MUT]", volumeSymbol).Color(colors.Scheme("degraded"))
 		}
 		return outputs.Textf("%s[%02d%%]", volumeSymbol, v.Pct())
+	}))
+
+	// Display yubikey touch prompt
+	barista.Add(yubikey.New().Output(func(gpg, u2f bool) bar.Output {
+		var reason []string
+		if gpg {
+			reason = append(reason, "GPG")
+		}
+		if u2f {
+			reason = append(reason, "U2F")
+		}
+		if len(reason) == 0 {
+			return nil
+		}
+		out := outputs.Textf("[YK: %s]", strings.Join(reason, ","))
+		out.Urgent(true)
+		return out
 	}))
 
 	// network
