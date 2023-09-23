@@ -1,18 +1,3 @@
-// Copyright 2018 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// i3status is a port of the default i3status configuration to barista.
 package main
 
 import (
@@ -23,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"tasadar.net/tionis/i3-tools/bar"
 )
 
 func main() {
@@ -36,8 +22,65 @@ func main() {
 					{
 						Name:  "render",
 						Usage: "render bar output as json for i3bar",
+						Flags: []cli.Flag{
+							&cli.BoolFlag{
+								Name:  "ethernet",
+								Usage: "show ethernet status",
+								Value: false,
+							},
+							&cli.BoolFlag{
+								Name:  "wifi",
+								Usage: "show wifi status",
+								Value: true,
+							},
+							&cli.BoolFlag{
+								Name:  "battery",
+								Usage: "show battery status",
+								Value: true,
+							},
+							&cli.BoolFlag{
+								Name:  "ipv6",
+								Usage: "show ipv6 status",
+								Value: false,
+							},
+							&cli.BoolFlag{
+								Name:  "wifi-ips",
+								Usage: "show wifi ips",
+								Value: false,
+							},
+							&cli.StringFlag{
+								Name:  "terminal-emulator",
+								Usage: "terminal emulator to use",
+								Value: "alacritty",
+							},
+							&cli.StringFlag{
+								Name:  "color-good",
+								Usage: "color for good status",
+								Value: "#0f0",
+							},
+							&cli.StringFlag{
+								Name:  "color-degraded",
+								Usage: "color for degraded status",
+								Value: "#ff0",
+							},
+							&cli.StringFlag{
+								Name:  "color-bad",
+								Usage: "color for bad status",
+								Value: "#f00",
+							},
+						},
 						Action: func(c *cli.Context) error {
-							return i3status(defaultBar())
+							return bar.Status(bar.Config{
+								Ethernet:         c.Bool("ethernet"),
+								Wifi:             c.Bool("wifi"),
+								Battery:          c.Bool("battery"),
+								IPv6:             c.Bool("ipv6"),
+								WifiIPs:          c.Bool("wifi-ips"),
+								TerminalEmulator: "alacritty",
+								ColorGood:        c.String("color-good"),
+								ColorDegraded:    c.String("color-degraded"),
+								ColorBad:         c.String("color-bad"),
+							})
 						},
 					},
 				},

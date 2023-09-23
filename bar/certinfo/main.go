@@ -24,6 +24,7 @@ type Module struct {
 	tickerAccuracy int
 	cert           *ssh.Certificate
 	err            error
+	format         string
 }
 
 func (m *Module) parseCert() {
@@ -31,11 +32,12 @@ func (m *Module) parseCert() {
 }
 
 // ForPath constructs a yubikey module with the given path to the gpg keyring.
-func ForPath(certPath string) *Module {
+func ForPath(certPath, format string) *Module {
 	m := &Module{
 		certPath:       certPath,
 		ticker:         cticker.New(time.Minute, time.Second),
 		tickerAccuracy: 60,
+		format:         format,
 	}
 
 	m.Output(func() bar.Output {
@@ -59,19 +61,6 @@ func ForPath(certPath string) *Module {
 			timeRemaining = m.cert.ValidBefore - now
 		}
 
-		file, err := os.OpenFile("/tmp/certinfo", os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return outputs.Error(err)
-		}
-		defer file.Close()
-		file.Write([]byte(
-			fmt.Sprintf("remaining: %s, passed: %s, ticker: %d\n",
-				renderTime(timeRemaining),
-				renderTime(timePassed),
-				m.tickerAccuracy,
-			)))
-		file.Write([]byte("\n"))
-
 		if timeRemaining < 120 || timePassed < 120 {
 			if m.tickerAccuracy != 1 {
 				m.ticker = cticker.New(time.Second, time.Millisecond*100)
@@ -94,7 +83,7 @@ func ForPath(certPath string) *Module {
 			}
 		}
 
-		out := outputs.Textf("%s/%s", renderTime(timePassed), renderTime(timeRemaining))
+		out := outputs.Textf(m.format, fmt.Sprintf("%s/%s", renderTime(timePassed), renderTime(timeRemaining)))
 		if timeRemaining == 0 {
 			out.Color(colors.Scheme("good"))
 			out.Urgent(true)
@@ -112,12 +101,12 @@ func ForPath(certPath string) *Module {
 
 // New constructs a new yubikey module using the default paths for the u2f
 // pending file and gpg keyring.
-func New() *Module {
+func New(format string) *Module {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return ForPath(path.Join(homeDir, ".ssh", "id_ed25519-cert.pub"))
+	return ForPath(path.Join(homeDir, ".ssh", "id_ed25519-cert.pub"), format)
 }
 
 // Output sets the output format for the module.

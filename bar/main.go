@@ -1,4 +1,4 @@
-package main
+package bar
 
 import (
 	barista "barista.run"
@@ -15,39 +15,49 @@ import (
 	"barista.run/outputs"
 	"fmt"
 	"github.com/martinlindhe/unit"
+	"os/exec"
 	"strings"
-	"tasadar.net/tionis/i3-tools/certinfo"
-	"tasadar.net/tionis/i3-tools/yubikey"
+	"tasadar.net/tionis/i3-tools/bar/certinfo"
+	"tasadar.net/tionis/i3-tools/bar/yubikey"
 	"time"
 )
 
-type barConfig struct {
-	ethernet bool
-	wifi     bool
-	battery  bool
-	ipv6     bool
-	wifiIPs  bool
+const (
+	storageSymbol  = " "
+	wifiSymbol     = " "
+	ethernetSymbol = " "
+	certSymbol     = " "
+	warnSymbol     = " "
+	errorSymbol    = " "
+	infoSymbol     = " "
+	//ramSymbol      = " "
+	//timeSymbol     = " "
+	//loadSymbol     = " "
+	//yubikeySymbol  = " "
+
+)
+
+type Config struct {
+	Ethernet         bool
+	Wifi             bool
+	Battery          bool
+	IPv6             bool
+	WifiIPs          bool
+	TerminalEmulator string
+	ColorGood        string
+	ColorBad         string
+	ColorDegraded    string
 }
 
-func defaultBar() barConfig {
-	return barConfig{
-		ethernet: false,
-		wifi:     true,
-		battery:  true,
-		ipv6:     false,
-		wifiIPs:  false,
-	}
-}
-
-func i3status(c barConfig) error {
+func Status(c Config) error {
 	colors.LoadFromMap(map[string]string{
-		"good":     "#0f0",
-		"bad":      "#f00",
-		"degraded": "#ff0",
+		"good":     c.ColorGood,
+		"bad":      c.ColorBad,
+		"degraded": c.ColorDegraded,
 	})
 
 	// Display information about ssh certificate
-	barista.Add(certinfo.New())
+	barista.Add(certinfo.New(certSymbol + "[%s]"))
 
 	// Display yubikey touch prompt
 	barista.Add(yubikey.New().Output(func(gpg, u2f bool) bar.Output {
@@ -77,18 +87,25 @@ func i3status(c barConfig) error {
 
 	// storage
 	barista.Add(diskspace.New("/").Output(func(i diskspace.Info) bar.Output {
-		out := outputs.Text(format.IBytesize(i.Available))
+		out := outputs.Pango(storageSymbol + format.IBytesize(i.Available))
 		switch {
-		case i.AvailFrac() < 0.2:
+		case i.AvailFrac() < 0.05:
 			out.Color(colors.Scheme("bad"))
-		case i.AvailFrac() < 0.33:
+		case i.Available.Gigabytes() < 3:
+			out.Color(colors.Scheme("bad"))
+		case i.AvailFrac() < 0.1:
 			out.Color(colors.Scheme("degraded"))
 		}
+		out.OnClick(func(e bar.Event) {
+			if e.Button == bar.ButtonLeft {
+				_ = exec.Command(c.TerminalEmulator, "-e", "gdu").Run()
+			}
+		})
 		return out
 	}))
 
 	// network
-	if c.ipv6 {
+	if c.IPv6 {
 		barista.Add(netinfo.New().Output(func(s netinfo.State) bar.Output {
 			if !s.Enabled() {
 				return nil
@@ -105,8 +122,8 @@ func i3status(c barConfig) error {
 	barista.Add(wlan.Any().Output(func(w wlan.Info) bar.Output {
 		switch {
 		case w.Connected():
-			out := fmt.Sprintf("W: (%s)", w.SSID)
-			if c.wifiIPs {
+			out := fmt.Sprintf(wifiSymbol+"[%s]", w.SSID)
+			if c.WifiIPs {
 				if len(w.IPs) > 0 {
 					out += fmt.Sprintf(" %s", w.IPs[0])
 				}
@@ -121,7 +138,7 @@ func i3status(c barConfig) error {
 		}
 	}))
 
-	if c.ethernet {
+	if c.Ethernet {
 		barista.Add(netinfo.Prefix("e").Output(func(s netinfo.State) bar.Output {
 			switch {
 			case s.Connected():
@@ -129,11 +146,11 @@ func i3status(c barConfig) error {
 				if len(s.IPs) > 0 {
 					ip = s.IPs[0].String()
 				}
-				return outputs.Textf("E: %s", ip).Color(colors.Scheme("good"))
+				return outputs.Textf(ethernetSymbol+"[%s]", ip).Color(colors.Scheme("good"))
 			case s.Connecting():
-				return outputs.Text("E: connecting...").Color(colors.Scheme("degraded"))
+				return outputs.Text(ethernetSymbol + "[connecting...]").Color(colors.Scheme("degraded"))
 			case s.Enabled():
-				return outputs.Text("E: down").Color(colors.Scheme("bad"))
+				return outputs.Text(ethernetSymbol + "[down]").Color(colors.Scheme("bad"))
 			default:
 				return nil
 			}
@@ -142,14 +159,14 @@ func i3status(c barConfig) error {
 
 	// battery
 	statusName := map[battery.Status]string{
-		battery.Charging:    "CHR",
-		battery.Discharging: "BAT",
-		battery.NotCharging: "NOT",
-		battery.Unknown:     "UNK",
+		battery.Charging:    " ",
+		battery.Discharging: " ",
+		battery.NotCharging: " ",
+		battery.Unknown:     "",
 	}
 	barista.Add(battery.All().Output(func(b battery.Info) bar.Output {
 		if b.Status == battery.Disconnected {
-			return nil
+			return outputs.Text("NO BATTERY").Color(colors.Scheme("bad"))
 		}
 		if b.Status == battery.Full {
 			return outputs.Text("FULL")
@@ -168,7 +185,7 @@ func i3status(c barConfig) error {
 
 	// ram
 	barista.Add(meminfo.New().Output(func(i meminfo.Info) bar.Output {
-		if i.Available() < unit.Gigabyte {
+		if i.Available() < 0.7*unit.Gigabyte {
 			return outputs.Textf(`MEMORY < %s`,
 				format.IBytesize(i.Available())).
 				Color(colors.Scheme("bad"))
@@ -177,9 +194,9 @@ func i3status(c barConfig) error {
 			format.IBytesize(i["MemTotal"]-i.Available()),
 			format.IBytesize(i.Available()))
 		switch {
-		case i.AvailFrac() < 0.2:
+		case i.AvailFrac() < 0.05:
 			out.Color(colors.Scheme("bad"))
-		case i.AvailFrac() < 0.33:
+		case i.AvailFrac() < 0.1:
 			out.Color(colors.Scheme("degraded"))
 		}
 		return out
@@ -188,7 +205,8 @@ func i3status(c barConfig) error {
 	// time
 	barista.Add(clock.Local().OutputFormat("2006-01-02 15:04:05"))
 
-	// if crash on locking and using `status_command exec /path/to/i3-tools bar render`
+	// if crash on screen locking and
+	// using `status_command exec /path/to/i3-tools bar render`
 	// in i3 config does not help, try uncommenting this:
 	// barista.SuppressSignals(true)
 	return barista.Run()
