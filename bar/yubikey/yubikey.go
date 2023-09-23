@@ -85,7 +85,7 @@ func (m *Module) Stream(sink bar.Sink) {
 	go detector.WatchGPG(m.gpgPubringPath, requestGPGCheck)
 
 	exits := new(sync.Map)
-	go detector.WatchSSH(requestGPGCheck, exits)
+	//go detector.WatchSSH(requestGPGCheck, exits)
 	defer func(exits *sync.Map) {
 		exits.Range(func(_, value any) bool {
 			if ch, ok := value.(chan bool); ok {

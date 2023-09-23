@@ -14,6 +14,7 @@ require (
 	github.com/zalando/go-keyring v0.2.3
 	go.i3wm.org/i3/v4 v4.21.0
 	golang.org/x/crypto v0.13.0
+	golang.org/x/time v0.3.0
 )
 
 require (
@@ -26,6 +27,7 @@ require (
 	github.com/esiqveland/notify v0.11.1 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/jfreymuth/pulse v0.1.1-0.20221101213618-75628dabd933 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/scylladb/go-set v1.0.2 // indirect
@@ -39,7 +41,6 @@ require (
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

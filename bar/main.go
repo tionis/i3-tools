@@ -11,10 +11,13 @@ import (
 	"barista.run/modules/meminfo"
 	"barista.run/modules/netinfo"
 	"barista.run/modules/sysinfo"
+	"barista.run/modules/volume"
+	"barista.run/modules/volume/alsa"
 	"barista.run/modules/wlan"
 	"barista.run/outputs"
 	"fmt"
 	"github.com/martinlindhe/unit"
+	"log"
 	"os/exec"
 	"strings"
 	"tasadar.net/tionis/i3-tools/bar/certinfo"
@@ -27,9 +30,10 @@ const (
 	wifiSymbol     = " "
 	ethernetSymbol = " "
 	certSymbol     = " "
-	warnSymbol     = " "
-	errorSymbol    = " "
-	infoSymbol     = " "
+	volumeSymbol   = " "
+	//warnSymbol     = " "
+	//errorSymbol    = " "
+	//infoSymbol     = " "
 	//ramSymbol      = " "
 	//timeSymbol     = " "
 	//loadSymbol     = " "
@@ -50,6 +54,7 @@ type Config struct {
 }
 
 func Status(c Config) error {
+	log.SetOutput(log.Writer())
 	colors.LoadFromMap(map[string]string{
 		"good":     c.ColorGood,
 		"bad":      c.ColorBad,
@@ -104,6 +109,14 @@ func Status(c Config) error {
 		return out
 	}))
 
+	// volume
+	barista.Add(volume.New(alsa.DefaultMixer()).Output(func(v volume.Volume) bar.Output {
+		if v.Mute {
+			return outputs.Textf("%s[MUT]", volumeSymbol).Color(colors.Scheme("degraded"))
+		}
+		return outputs.Textf("%s[%02d%%]", volumeSymbol, v.Pct())
+	}))
+
 	// network
 	if c.IPv6 {
 		barista.Add(netinfo.New().Output(func(s netinfo.State) bar.Output {
@@ -128,7 +141,11 @@ func Status(c Config) error {
 					out += fmt.Sprintf(" %s", w.IPs[0])
 				}
 			}
-			return outputs.Text(out).Color(colors.Scheme("good"))
+			return outputs.Text(out).Color(colors.Scheme("good")).OnClick(func(e bar.Event) {
+				if e.Button == bar.ButtonLeft {
+					_ = exec.Command(c.TerminalEmulator, "-e", "nmtui").Run()
+				}
+			})
 		case w.Connecting():
 			return outputs.Text("W: connecting...").Color(colors.Scheme("degraded"))
 		case w.Enabled():

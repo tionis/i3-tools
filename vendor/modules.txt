@@ -31,6 +31,7 @@ barista.run/modules/netspeed
 barista.run/modules/sysinfo
 barista.run/modules/volume
 barista.run/modules/volume/alsa
+barista.run/modules/volume/pulseaudio
 barista.run/modules/weather
 barista.run/modules/weather/openweathermap
 barista.run/modules/wlan
@@ -82,6 +83,9 @@ github.com/godbus/dbus/v5
 # github.com/golang/protobuf v1.5.3
 ## explicit; go 1.9
 github.com/golang/protobuf/proto
+# github.com/jfreymuth/pulse v0.1.1-0.20221101213618-75628dabd933
+## explicit; go 1.12
+github.com/jfreymuth/pulse/proto
 # github.com/lucasb-eyer/go-colorful v1.2.0
 ## explicit; go 1.12
 github.com/lucasb-eyer/go-colorful

@@ -8,10 +8,12 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime/debug"
 	"tasadar.net/tionis/i3-tools/bar"
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	app := &cli.App{
 		Name: "i3-tools",
 		Commands: []*cli.Command{
@@ -418,6 +420,11 @@ func main() {
 			},
 		},
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("panic occurred: %+v\n%s", r, string(debug.Stack()))
+		}
+	}()
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalf("error occurred: %+v", err)
 	}

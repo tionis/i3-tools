@@ -85,14 +85,17 @@ func ForPath(certPath, format string) *Module {
 
 		out := outputs.Textf(m.format, fmt.Sprintf("%s/%s", renderTime(timePassed), renderTime(timeRemaining)))
 		if timeRemaining == 0 {
-			out.Color(colors.Scheme("good"))
+			out.Color(colors.Scheme("bad"))
 			out.Urgent(true)
-		} else if timeRemaining < 60*60 {
-			out.Color(colors.Scheme("bad"))
-		} else if timePassed*100/(timePassed+timeRemaining) > 50 && timeRemaining < 1*24*60*60 {
-			out.Color(colors.Scheme("bad"))
-		} else if timePassed*100/(timePassed+timeRemaining) > 50 {
-			out.Color(colors.Scheme("degraded"))
+		} else {
+			remainingPercentage := 1 - float64(timePassed)/float64(timePassed+timeRemaining)
+			if remainingPercentage < 0.25 {
+				out.Color(colors.Scheme("bad"))
+			} else if remainingPercentage < 0.5 {
+				out.Color(colors.Scheme("degraded"))
+			} else {
+				out.Color(colors.Scheme("good"))
+			}
 		}
 		return out
 	})
