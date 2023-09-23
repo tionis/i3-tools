@@ -35,7 +35,7 @@ func ForPath(certPath string) *Module {
 	m := &Module{
 		certPath:       certPath,
 		ticker:         cticker.New(time.Minute, time.Second),
-		tickerAccuracy: 1,
+		tickerAccuracy: 60,
 	}
 
 	m.Output(func() bar.Output {
@@ -59,9 +59,22 @@ func ForPath(certPath string) *Module {
 			timeRemaining = m.cert.ValidBefore - now
 		}
 
-		if timeRemaining <= 60 || timePassed <= 60 {
+		file, err := os.OpenFile("/tmp/certinfo", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return outputs.Error(err)
+		}
+		defer file.Close()
+		file.Write([]byte(
+			fmt.Sprintf("remaining: %s, passed: %s, ticker: %d\n",
+				renderTime(timeRemaining),
+				renderTime(timePassed),
+				m.tickerAccuracy,
+			)))
+		file.Write([]byte("\n"))
+
+		if timeRemaining < 120 || timePassed < 120 {
 			if m.tickerAccuracy != 1 {
-				m.ticker = cticker.New(time.Second, time.Second)
+				m.ticker = cticker.New(time.Second, time.Millisecond*100)
 				m.tickerAccuracy = 1
 			}
 		} else if timeRemaining <= 60*60 || timePassed <= 60*60 {
