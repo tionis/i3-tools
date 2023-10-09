@@ -112,7 +112,7 @@ github.com/sirupsen/logrus
 github.com/spf13/afero
 github.com/spf13/afero/internal/common
 github.com/spf13/afero/mem
-# github.com/tionis/pulse.go v0.0.0-20231009144200-cec2fa4f5c60
+# github.com/tionis/pulse.go v0.0.0-20231009153914-8d66bad7990c
 ## explicit; go 1.12
 github.com/tionis/pulse.go/proto
 # github.com/urfave/cli/v2 v2.25.7

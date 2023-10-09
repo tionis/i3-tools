@@ -10,7 +10,7 @@ require (
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/maximbaz/yubikey-touch-detector v0.0.0-20230921072209-a241bcf70545
 	github.com/multiplay/go-cticker v0.0.0-20190411183326-bd2f021b1c08
-	github.com/tionis/pulse.go v0.0.0-20231009144200-cec2fa4f5c60
+	github.com/tionis/pulse.go v0.0.0-20231009153914-8d66bad7990c
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zalando/go-keyring v0.2.3
 	go.i3wm.org/i3/v4 v4.21.0
