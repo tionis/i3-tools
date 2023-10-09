@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pulseaudio
+package pulse
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 	"barista.run/base/value"
 	"barista.run/modules/volume"
 
-	"github.com/jfreymuth/pulse/proto"
+	"github.com/tionis/pulse.go/proto"
 )
 
 type deviceType int
@@ -44,7 +44,7 @@ type paModule struct {
 }
 
 func openPulseAudio() (*proto.Client, error) {
-	client, _, err := proto.Connect("")
+	client, _, err := proto.Connect("", func(interface{}) {})
 	return client, err
 }
 
@@ -155,28 +155,26 @@ func makeVolume(channelVolumes proto.ChannelVolumes, mute bool, controller volum
 }
 
 func (m *paModule) Worker(s *value.ErrorValue) {
-	client, conn, err := proto.Connect("")
+	ch := make(chan struct{}, 1)
+	client, conn, err := proto.Connect("",
+		func(val interface{}) {
+			switch val.(type) {
+			case *proto.SubscribeEvent:
+				// When PulseAudio server notifies us about sink/source change,
+				// refresh the volume.
+				//
+				// It's okay if we lose notification something due to channel
+				// being full though: this means that refresh is already pending.
+				select {
+				case ch <- struct{}{}:
+				default:
+				}
+			}
+		})
 	if s.Error(err) {
 		return
 	}
 	defer conn.Close()
-
-	ch := make(chan struct{}, 1)
-
-	client.Callback = func(val interface{}) {
-		switch val.(type) {
-		case *proto.SubscribeEvent:
-			// When PulseAudio server notifies us about sink/source change,
-			// refresh the volume.
-			//
-			// It's okay if we lose notification something due to channel
-			// being full though: this means that refresh is already pending.
-			select {
-			case ch <- struct{}{}:
-			default:
-			}
-		}
-	}
 
 	props := proto.PropList{
 		"application.name":           proto.PropListString("barista"),

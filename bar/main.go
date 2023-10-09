@@ -12,7 +12,6 @@ import (
 	"barista.run/modules/netinfo"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
-	"barista.run/modules/volume/alsa"
 	"barista.run/modules/wlan"
 	"barista.run/outputs"
 	"fmt"
@@ -22,6 +21,7 @@ import (
 	"runtime"
 	"strings"
 	"tasadar.net/tionis/i3-tools/bar/certinfo"
+	"tasadar.net/tionis/i3-tools/bar/pulse"
 	"tasadar.net/tionis/i3-tools/bar/yubikey"
 	"time"
 )
@@ -95,12 +95,18 @@ func Status(c Config) error {
 	}))
 
 	// volume
-	barista.Add(volume.New(alsa.DefaultMixer()).Output(func(v volume.Volume) bar.Output {
+	barista.Add(volume.New(pulse.DefaultSink()).Output(func(v volume.Volume) bar.Output {
 		if v.Mute {
 			return outputs.Textf("%s[MUT]", volumeSymbol).Color(colors.Scheme("degraded"))
 		}
 		return outputs.Textf("%s[%02d%%]", volumeSymbol, v.Pct())
 	}))
+	/*barista.Add(volume.New(alsa.DefaultMixer()).Output(func(v volume.Volume) bar.Output {
+		if v.Mute {
+			return outputs.Textf("%s[MUT]", volumeSymbol).Color(colors.Scheme("degraded"))
+		}
+		return outputs.Textf("%s[%02d%%]", volumeSymbol, v.Pct())
+	}))*/
 
 	// Display yubikey touch prompt
 	barista.Add(yubikey.New().Output(func(gpg, u2f bool) bar.Output {
@@ -190,14 +196,21 @@ func Status(c Config) error {
 		if b.Status == battery.Full {
 			return outputs.Text("FULL")
 		}
-		out := outputs.Textf("%s %d%% %s",
-			statusName[b.Status],
-			b.RemainingPct(),
-			b.RemainingTime())
+		remainingTime := b.RemainingTime()
+		remainingPct := b.RemainingPct()
+		var out *bar.Segment
+		if remainingTime == 0 {
+			out = outputs.Textf("%s %d%%", statusName[b.Status], b.RemainingPct())
+		} else {
+			out = outputs.Textf("%s %d%% %s",
+				statusName[b.Status],
+				b.RemainingPct(),
+				b.RemainingTime())
+		}
 		if b.Discharging() {
-			if b.RemainingPct() < 10 || b.RemainingTime() < 10*time.Minute {
+			if remainingPct < 10 || (remainingTime != 0 && remainingTime < 10*time.Minute) {
 				out.Color(colors.Scheme("bad")).Urgent(true)
-			} else if b.RemainingPct() < 20 || (b.RemainingTime() != 0 && b.RemainingTime() < 30*time.Minute) {
+			} else if remainingPct < 20 || (remainingTime != 0 && remainingTime < 30*time.Minute) {
 				out.Color(colors.Scheme("bad"))
 			}
 		}

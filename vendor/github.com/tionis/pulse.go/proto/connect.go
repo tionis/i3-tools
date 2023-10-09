@@ -17,7 +17,7 @@ import (
 // For the server string format see
 // https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/ServerStrings/
 // If the server string is empty, the environment variable PULSE_SERVER will be used.
-func Connect(server string) (*Client, net.Conn, error) {
+func Connect(server string, callback func (interface{})) (*Client, net.Conn, error) {
 	var sstr []serverString
 	if server != "" {
 		sstr = parseServerString(server)
@@ -30,6 +30,7 @@ func Connect(server string) (*Client, net.Conn, error) {
 		return nil, nil, errors.New("pulseaudio: no valid server")
 	}
 	c := &Client{}
+	c.Callback = callback
 
 	localname, err := os.Hostname()
 	if err != nil {
