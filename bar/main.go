@@ -79,7 +79,7 @@ func Status(c Config) error {
 	barista.Add(diskspace.New("/").Output(func(i diskspace.Info) bar.Output {
 		out := outputs.Pango(storageSymbol + format.IBytesize(i.Available))
 		switch {
-		case i.AvailFrac() < 0.05:
+		case i.AvailFrac() < 0.025:
 			out.Color(colors.Scheme("bad"))
 		case i.Available < 3*unit.Gigabyte:
 			out.Color(colors.Scheme("bad"))
