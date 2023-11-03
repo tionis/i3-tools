@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"github.com/martinlindhe/unit"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -63,7 +64,9 @@ func Status(c Config) error {
 	})
 
 	// Display information about ssh certificate
-	barista.Add(certinfo.New(certSymbol + "[%s]"))
+	if os.Getenv("SHOW_SSH_CERT") != "" && os.Getenv("SHOW_SSH_CERT") != "false" {
+		barista.Add(certinfo.New(certSymbol + "[%s]"))
+	}
 
 	// Display system load
 	loadWarnLimit := float64(runtime.NumCPU()) * 0.8
