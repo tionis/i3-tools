@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"github.com/martinlindhe/unit"
 	"log"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -53,6 +52,7 @@ type Config struct {
 	ColorGood        string
 	ColorBad         string
 	ColorDegraded    string
+	ShowSSHCert      bool
 }
 
 func Status(c Config) error {
@@ -64,7 +64,7 @@ func Status(c Config) error {
 	})
 
 	// Display information about ssh certificate
-	if os.Getenv("SHOW_SSH_CERT") != "" && os.Getenv("SHOW_SSH_CERT") != "false" {
+	if c.ShowSSHCert {
 		barista.Add(certinfo.New(certSymbol + "[%s]"))
 	}
 

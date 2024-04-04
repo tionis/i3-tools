@@ -70,6 +70,11 @@ func main() {
 								Usage: "color for bad status",
 								Value: "#f00",
 							},
+							&cli.BoolFlag{
+								Name:  "show-ssh-cert",
+								Usage: "show ssh certificate status",
+								Value: false,
+							},
 						},
 						Action: func(c *cli.Context) error {
 							return bar.Status(bar.Config{
@@ -82,6 +87,7 @@ func main() {
 								ColorGood:        c.String("color-good"),
 								ColorDegraded:    c.String("color-degraded"),
 								ColorBad:         c.String("color-bad"),
+								ShowSSHCert:      c.Bool("show-ssh-cert"),
 							})
 						},
 					},
