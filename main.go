@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime/debug"
-	"tasadar.net/tionis/i3-tools/bar"
+	"github.com/tionis/i3-tools/bar"
 )
 
 func main() {

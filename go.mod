@@ -1,4 +1,4 @@
-module tasadar.net/tionis/i3-tools
+module github.com/tionis/i3-tools
 
 go 1.21.1
 

@@ -20,9 +20,9 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"tasadar.net/tionis/i3-tools/bar/certinfo"
-	"tasadar.net/tionis/i3-tools/bar/pulse"
-	"tasadar.net/tionis/i3-tools/bar/yubikey"
+	"github.com/tionis/i3-tools/bar/certinfo"
+	"github.com/tionis/i3-tools/bar/pulse"
+	"github.com/tionis/i3-tools/bar/yubikey"
 	"time"
 )
 
